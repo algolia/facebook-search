@@ -13,6 +13,10 @@ body {
   background-image: linear-gradient(top, #354776 0%,#4D68A2 100%);
 }
 
+h1 small {
+  color: #dedede;
+}
+
 #stats {
   float: left;
   margin-top: 15px;
@@ -75,11 +79,11 @@ body {
 
   small {
     display: block;
-    color: #A0A0A0;
+    color: #dedede;
     margin-top: 5px;
     text-align: right;
     img {
-      height: 1em;
+      height: 1.5em;
     }
   }
 }
