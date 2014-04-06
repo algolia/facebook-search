@@ -37,6 +37,7 @@ class User < ActiveRecord::Base
       _tags: [ uid, f['type'] ],
       created_time_i: DateTime.parse(f['created_time']).to_i,
       likes_count: f['likes'].try(:[], 'data').try(:length).to_i,
+      story_tags: f['story_tags'].try(:values).try(:flatten),
       comments_count: f['comments'].try(:[], 'data').try(:length).to_i
   end
 

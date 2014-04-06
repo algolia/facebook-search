@@ -192,12 +192,14 @@
       };
       var LABELS = {
         'application.name' : 'Application',
-        'type' : 'Type'
+        'type' : 'Type',
+        'from.name' : 'From',
+        'story_tags.name' : 'Tags'
       };
 
       window.helper = new AlgoliaSearchHelper(algolia, 'facebook_#{Rails.env}', {
         hitsPerPage: 10,
-        facets: ['application.name', 'type']
+        facets: ['application.name', 'type', 'from.name', 'story_tags.name']
       });
 
       var loading = true;
@@ -247,10 +249,7 @@
           }
           if (hit.story_tags) {
             $.each(hit.story_tags, function() {
-              for (var i = 0; i < this.length; ++i) {
-                var tag = this[i];
-                hit.story = hit.story.replace(tag.name, '<strong><a href="http://facebook.com/' + tag.id + '">' + tag.name + '</a></strong>');
-              }
+              hit.story = hit.story.replace(this.name, '<strong><a href="http://facebook.com/' + this.id + '">' + this.name + '</a></strong>');
             });
           }
 
