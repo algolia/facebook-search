@@ -19,8 +19,8 @@
     #hits-wrapper{style: 'display: none'}
       .container
         .row
-          #facets.col-lg-3.col-sm-4.hidden-xs
-          #hits.col-lg-9.col-sm-8.col-xs-12
+          #facets.col-lg-2.col-sm-3.hidden-xs
+          #hits.col-lg-6.col-sm-8.col-xs-12
     #no-results{style: 'display: none'}
       %p.text-center No results are matching your query.
     #loading{style: 'display: none'}
@@ -30,25 +30,175 @@
         %br
         %small.text-muted Could take up to 1 minute depending on your feed activity.
 
-  %script#hit-template{type: 'text/template'}
+  %script#comments-template{type: 'text/template'}
     :plain
-      <div class="hit">
-        
-        <div class="clearfix"></div>
+      {{#total_count}}
+        <div class="actions">
+          <div class="pull-right">
+            {{#likes_count}}
+              <i class="fa fa-thumbs-o-up"></i>
+              {{ likes_count }}
+            {{/likes_count}}
+            {{#comments_count}}
+              <i class="fa fa-comments-o"></i>
+              {{ comments_count }}
+            {{/comments_count}}
+          </div>
+          <div class="pull-left">
+            {{#actions}}
+              <a href="{{ link }}">{{ name }}</a>
+            {{/actions}}
+          </div>
+          <div class="clearfix"></div>
+        </div>
+      {{/total_count}}
+      {{#comments}}
+      <div class="comments">
+        {{#comments.data}}
+          <div class="comment">
+            <a href="http://facebook.com/{{ from.id }}" class="thumb"> 
+              <img src="http://graph.facebook.com/{{ from.id }}/picture" />
+            </a>
+            <p>
+              <strong><a href="http://facebook.com/{{ from.id }}">{{ from.name }}</a></strong>
+              {{{ _highlightResult.message.value }}}
+              <abbr class="timeago" title="{{ created_time }}">{{ created_time }}</abbr>
+            </p>
+            <div class="clearfix"></div>
+          </div>
+        {{/comments.data}}
+      </div>
+      {{/comments}}
+
+  %script#status-template{type: 'text/template'}
+    :plain
+      <div class="title">
+        <a href="http://facebook.com/{{ from.id }}"> 
+          <img src="http://graph.facebook.com/{{ from.id }}/picture" />
+        </a>
+        <h4>
+          {{{ story }}} 
+          <abbr class="timeago" title="{{ created_time }}">{{ created_time }}</abbr>
+        </h4>
+      </div>
+      <div class="content">
+        <p>{{{ _highlightResult.message.value }}}</p>
+      </div>
+
+  %script#photo-template{type: 'text/template'}
+    :plain
+      <div class="title">
+        <a href="http://facebook.com/{{ from.id }}"> 
+          <img src="http://graph.facebook.com/{{ from.id }}/picture" />
+        </a> 
+        <h4>
+          {{{ story }}} 
+          <abbr class="timeago" title="{{ created_time }}">{{ created_time }}</abbr>
+        </h4>
+      </div> 
+      <div class="content">
+        <p>{{{ _highlightResult.message.value }}}</p>
+        <div class="picture_container">
+          <a target="_blank" href="{{ link }}"> 
+            <img src="{{ picture }}" />
+          </a>
+        </div>
+      </div>
+
+  %script#link-template{type: 'text/template'}
+    :plain
+      <div class="title">
+        <a href="http://facebook.com/{{ from.id }}">
+          <img src="http://graph.facebook.com/{{ from.id }}/picture" />
+        </a>
+        <h4>
+          {{{ story }}}
+          <abbr class="timeago" title="{{ created_time }}">{{ created_time }}</abbr>
+        </h4>
+      </div>
+      <div class="content">
+        <p>{{{ _highlightResult.message.value }}}</p>
+        {{#name}}
+          <div class="link_container">
+            <div class="text-center"><img class="pic" src="{{ picture }}" /></div>
+            <div class="description">
+              <h3>{{{ _highlightResult.name.value }}}</h3>
+              <p>{{{ _highlightResult.description.value }}}</p>
+            </div>
+          </div>
+        {{/name}}
+      </div>
+
+  %script#video-template{type: 'text/template'}
+    :plain
+      <div class="title">
+        <a href="http://facebook.com/{{ from.id }}"> 
+          <img src="http://graph.facebook.com/{{ from.id }}/picture" />
+        </a> 
+        <h4>
+          {{{ story }}} 
+          <abbr class="timeago" title="{{ created_time }}">{{ created_time }}</abbr>
+        </h4>
+      </div>
+      <div class="content">
+        <p>{{{ _highlightResult.name.value }}}</p>
+        <div class="video_container">
+            <div class="text-center"><img class="pic" src="{{ picture }}" /></div>
+            <div class="description">
+              <h4>{{{ _highlightResult.name.value }}}</h4>
+              <a href="{{ link }}">{{ link }}</a>
+            </div>
+        </div>
+      </div>      
+
+  %script#checkin-template{type: 'text/template'}
+    :plain
+      <div class="title">
+        <a href="http://facebook.com/{{ from.id }}"> 
+          <img src="http://graph.facebook.com/{{ from.id }}/picture" />
+        </a> 
+        <h4>
+          {{{ story }}} 
+          <abbr class="timeago" title="{{ created_time }}">{{ created_time }}</abbr>
+        </h4>
+      </div> 
+      <div class="content">
+        <p>{{ caption }}</p>
+        <div class="picture_container">
+          <a target="_blank" href="{{ link }}"> 
+            <img src="{{ picture }}" />
+          </a>
+        </div>
       </div>
 
   :javascript
     $(document).ready(function() {
       var algolia = new AlgoliaSearch('#{ENV['ALGOLIA_APPLICATION_ID']}', '#{@secured_api_key}');
       algolia.setSecurityTags('#{current_user.uid}');
-      var index = algolia.initIndex('facebook_#{Rails.env}');
       var $hits = $('#hits');
+      var $facets = $('#facets');
       var $hitsWrapper = $('#hits-wrapper');
       var $noResults = $('#no-results');
       var $stats = $('#stats');
       var $loading = $('#loading');
       var $q = $('#q');
-      var hitTemplate = Hogan.compile($('#hit-template').text());
+      var templates = {
+        status: Hogan.compile($('#status-template').text()),
+        photo: Hogan.compile($('#photo-template').text()),
+        link: Hogan.compile($('#link-template').text()),
+        video: Hogan.compile($('#video-template').text()),
+        checkin: Hogan.compile($('#checkin-template').text()),
+        comments: Hogan.compile($('#comments-template').text()),
+      };
+      var LABELS = {
+        'application.name' : 'Application',
+        'type' : 'Type'
+      };
+
+      window.helper = new AlgoliaSearchHelper(algolia, 'facebook_#{Rails.env}', {
+        hitsPerPage: 10,
+        facets: ['application.name', 'type']
+      });
 
       var loading = true;
       function searchCallback(success, content) {
@@ -87,13 +237,59 @@
         var html = '';
         for (var i = 0; i < content.hits.length; ++i) {
           var hit = content.hits[i];
-          html += hitTemplate.render(hit);
+          var template = templates[hit.type];
+          if (!template) {
+            continue;
+          }
+
+          if (!hit.story) {
+            hit.story = '<strong><a href="http://facebook.com/' + hit.from.id + '">' + hit.from.name + '</a></strong>';
+          }
+          if (hit.story_tags) {
+            $.each(hit.story_tags, function() {
+              for (var i = 0; i < this.length; ++i) {
+                var tag = this[i];
+                hit.story = hit.story.replace(tag.name, '<strong><a href="http://facebook.com/' + tag.id + '">' + tag.name + '</a></strong>');
+              }
+            });
+          }
+
+          if (hit.comments) {
+            for (var j = 0; j < hit.comments.data.length; ++j) {
+              hit.comments.data[j]._highlightResult = hit._highlightResult.comments.data[j];
+            }
+          }
+
+          if (hit.comments_count || hit.likes_count) {
+            hit.total_count = hit.comments_count + hit.likes_count;
+          }
+
+          html += '<div class="hit">' +
+            template.render(hit) +
+            templates.comments.render(hit) +
+            '</div>';
         }
         $hits.html(html);
+
+        html = '';
+        for (var facet in content.facets) {
+          var values = [];
+          for (var f in content.facets[facet]) {
+            values.push([f, content.facets[facet][f]]);
+          }
+          values.sort(function(a, b) { b[1] - a[1] });
+          html += '<div class="title">' + LABELS[facet] + '</div>' +
+            '<ul class="list-unstyled">' +
+              $.map(values, function(e) { return '<li class="' + (helper.isRefined(facet, e[0]) ? 'active' : '') + '"><a href="#" onclick="helper.toggleRefine(\'' + facet + '\', \'' + e[0] + '\'); return false;">' + e[0] + '</a> (' + e[1] + ')'; }).join('') +
+            '</ul>';
+        }
+        $facets.html(html);
+
+        $("abbr.timeago").timeago();
       }
 
       window.search = function() {
-        index.search($q.val(), searchCallback, {
+        helper.search($q.val(), searchCallback, {
           page: 0,
           maxValuesPerFacet: 10,
           hitsPerPage: 10,

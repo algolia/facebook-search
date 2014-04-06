@@ -78,6 +78,8 @@ GEM
     figaro (0.7.0)
       bundler (~> 1.0)
       rails (>= 3, < 5)
+    font-awesome-rails (4.0.3.1)
+      railties (>= 3.2, < 5.0)
     haml (4.1.0.beta.1)
       tilt
     haml-rails (0.5.3)
@@ -227,6 +229,7 @@ DEPENDENCIES
   delayed_job_active_record
   factory_girl_rails
   figaro
+  font-awesome-rails
   haml-rails
   hipchat
   hogan_assets

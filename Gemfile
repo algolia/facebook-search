@@ -23,6 +23,7 @@ gem 'bourbon'
 gem 'bluepill'
 gem 'therubyracer'
 gem 'hipchat'
+gem "font-awesome-rails"
 
 group :development do
   gem 'better_errors'

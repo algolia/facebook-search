@@ -35,8 +35,9 @@ class User < ActiveRecord::Base
   def build_algolia_object(f)
     f.merge objectID: "#{uid}_#{f['id']}",
       _tags: [ uid, f['type'] ],
-      created_time: DateTime.parse(f['created_time']).to_i,
-      likes_count: f['likes'].try(:[], 'data').try(:length).to_i
+      created_time_i: DateTime.parse(f['created_time']).to_i,
+      likes_count: f['likes'].try(:[], 'data').try(:length).to_i,
+      comments_count: f['comments'].try(:[], 'data').try(:length).to_i
   end
 
 end
