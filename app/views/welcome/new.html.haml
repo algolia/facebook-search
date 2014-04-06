@@ -85,11 +85,13 @@
           <abbr class="timeago" title="{{ created_time }}">{{ created_time }}</abbr>
         </h4>
       </div>
-      <div class="content">
-        <p>{{{ _highlightResult.message.value }}}</p>
-      </div>
+      {{#message}}
+        <div class="content">
+          <p>{{{ _highlightResult.message.value }}}</p>
+        </div>
+      {{/message}}
 
-  %script#photo-template{type: 'text/template'}
+  %script#media-template{type: 'text/template'}
     :plain
       <div class="title">
         <a href="http://facebook.com/{{ from.id }}"> 
@@ -101,59 +103,28 @@
         </h4>
       </div> 
       <div class="content">
-        <p>{{{ _highlightResult.message.value }}}</p>
-        <div class="picture_container">
-          <a target="_blank" href="{{ link }}"> 
-            <img src="{{ picture }}" />
-          </a>
-        </div>
-      </div>
-
-  %script#link-template{type: 'text/template'}
-    :plain
-      <div class="title">
-        <a href="http://facebook.com/{{ from.id }}">
-          <img src="http://graph.facebook.com/{{ from.id }}/picture" />
-        </a>
-        <h4>
-          {{{ story }}}
-          <abbr class="timeago" title="{{ created_time }}">{{ created_time }}</abbr>
-        </h4>
-      </div>
-      <div class="content">
-        <p>{{{ _highlightResult.message.value }}}</p>
+        {{#message}}
+          <p>{{{ _highlightResult.message.value }}}</p>
+        {{/message}}
         {{#name}}
-          <div class="link_container">
-            <div class="text-center"><img class="pic" src="{{ picture }}" /></div>
-            <div class="description">
-              <h3>{{{ _highlightResult.name.value }}}</h3>
-              <p>{{{ _highlightResult.description.value }}}</p>
-            </div>
-          </div>
+          <h4>{{{ _highlightResult.name.value }}}</h4>
         {{/name}}
+        {{#link}}
+          <div class="text-center">
+            <a href="{{ link }}">
+              {{#picture}}
+                <img src="{{ picture }}" />
+              {{/picture}}
+              {{^picture}}
+                {{ link }}
+              {{/picture}}
+            </a>
+          </div>
+        {{/link}}
+        {{#description}}
+          <p>{{{ _highlightResult.description.value }}}</p>
+        {{/description}}
       </div>
-
-  %script#video-template{type: 'text/template'}
-    :plain
-      <div class="title">
-        <a href="http://facebook.com/{{ from.id }}"> 
-          <img src="http://graph.facebook.com/{{ from.id }}/picture" />
-        </a> 
-        <h4>
-          {{{ story }}} 
-          <abbr class="timeago" title="{{ created_time }}">{{ created_time }}</abbr>
-        </h4>
-      </div>
-      <div class="content">
-        <p>{{{ _highlightResult.name.value }}}</p>
-        <div class="video_container">
-            <div class="text-center"><img class="pic" src="{{ picture }}" /></div>
-            <div class="description">
-              <h4>{{{ _highlightResult.name.value }}}</h4>
-              <a href="{{ link }}">{{ link }}</a>
-            </div>
-        </div>
-      </div>      
 
   %script#checkin-template{type: 'text/template'}
     :plain
@@ -188,9 +159,9 @@
       var $q = $('#q');
       var templates = {
         status: Hogan.compile($('#status-template').text()),
-        photo: Hogan.compile($('#photo-template').text()),
-        link: Hogan.compile($('#link-template').text()),
-        video: Hogan.compile($('#video-template').text()),
+        photo: Hogan.compile($('#media-template').text()),
+        link: Hogan.compile($('#media-template').text()),
+        video: Hogan.compile($('#media-template').text()),
         checkin: Hogan.compile($('#checkin-template').text()),
         comments: Hogan.compile($('#comments-template').text()),
       };
@@ -273,7 +244,7 @@
             hit.total_count = hit.comments_count + hit.likes_count;
           }
 
-          html += '<div class="hit">' +
+          html += '<div class="hit ' + hit.type + '">' +
             template.render(hit) +
             templates.comments.render(hit) +
             '</div>';
