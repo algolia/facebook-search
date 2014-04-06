@@ -62,6 +62,10 @@
             <p>
               <strong><a href="http://facebook.com/{{ from.id }}">{{ from.name }}</a></strong>
               {{{ _highlightResult.message.value }}}
+              {{#like_count}}
+              <i class="fa fa-thumbs-o-up"></i>
+              <strong>{{ like_count }}</strong>
+              {{/like_count}}
               <abbr class="timeago" title="{{ created_time }}">{{ created_time }}</abbr>
             </p>
             <div class="clearfix"></div>
