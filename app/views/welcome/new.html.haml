@@ -1,0 +1,127 @@
+- if current_user || @tag
+  #signout-link.hidden-xs
+    - if @tag
+      = link_to "Try it now!", root_path
+    - else
+      = link_to "Sign out", signout_path, method: :delete
+  #search-form.form
+    %input.form-control#q{type: 'text', autocomplete: 'off', autocorrect: 'off', spellcheck: 'false', placeholder: 'Search by keywords'}
+    %small
+      Realtime Search by
+      = link_to 'http://www.algolia.com' do
+        = image_tag "http://www.algolia.com/assets/algolia_white.png"
+  .container-wrapper
+    .container
+      #stats.hidden-xs
+      #social-links
+        %a.twitter-follow-button{href: "https://twitter.com/algolia", "data-show-count" => "false", "data-show-screen-name" => "true"}Follow @algolia
+        %a.twitter-share-button{href: "https://twitter.com/share", "data-url" => root_url, "data-via" => "algolia", 'data-text' => 'Rethink the way you search your Facebook feed'} Tweet
+    #hits-wrapper{style: 'display: none'}
+      .container
+        .row
+          #facets.col-lg-3.col-sm-4.hidden-xs
+          #hits.col-lg-9.col-sm-8.col-xs-12
+    #no-results{style: 'display: none'}
+      %p.text-center No results are matching your query.
+    #loading{style: 'display: none'}
+      %p.text-center
+        %i.glyphicon.glyphicon-refresh.icon-rotation
+        We're indexing your feed, please wait...
+        %br
+        %small.text-muted Could take up to 1 minute depending on your feed activity.
+
+  %script#hit-template{type: 'text/template'}
+    :plain
+      <div class="hit">
+        
+        <div class="clearfix"></div>
+      </div>
+
+  :javascript
+    $(document).ready(function() {
+      var algolia = new AlgoliaSearch('#{ENV['ALGOLIA_APPLICATION_ID']}', '#{@secured_api_key}');
+      algolia.setSecurityTags('#{current_user.uid}');
+      var index = algolia.initIndex('facebook_#{Rails.env}');
+      var $hits = $('#hits');
+      var $hitsWrapper = $('#hits-wrapper');
+      var $noResults = $('#no-results');
+      var $stats = $('#stats');
+      var $loading = $('#loading');
+      var $q = $('#q');
+      var hitTemplate = Hogan.compile($('#hit-template').text());
+
+      var loading = true;
+      function searchCallback(success, content) {
+        if (!success || $q.val() != content.query) {
+          return;
+        }
+
+        if (loading) {
+          $loading.show();
+          algolia.clearCache();
+          if (content.hits.length < 2) {
+            $hitsWrapper.hide();
+            $noResults.hide();
+            $stats.hide();
+            $loading.show();
+            setTimeout(search, 1000);
+            return;
+          }
+          loading = false;
+        }
+        $loading.hide();
+
+        if (content.hits.length === 0) {
+          $hits.empty();
+          $stats.empty();
+          $hitsWrapper.hide();
+          $noResults.show();
+          return;
+        }
+        $hitsWrapper.show();
+        $stats.show();
+        $noResults.hide();
+
+        $stats.html('<b>' + content.nbHits + '</b> result' + (content.nbHits > 1 ? 's' : '') + ' in <b>' + content.processingTimeMS + '</b> ms');
+
+        var html = '';
+        for (var i = 0; i < content.hits.length; ++i) {
+          var hit = content.hits[i];
+          html += hitTemplate.render(hit);
+        }
+        $hits.html(html);
+      }
+
+      window.search = function() {
+        index.search($q.val(), searchCallback, {
+          page: 0,
+          maxValuesPerFacet: 10,
+          hitsPerPage: 10,
+          advancedSyntax: true,
+          queryType: 'prefixAll',
+          minWordSizefor1Typo: 4,
+          minWordSizefor2Typos: 7,
+        });
+      };
+      
+      $q.on('keyup change', function() {
+        window.search();
+      }).focus();
+
+      window.search();
+    });
+- else
+  #signin-link
+    %h1.text-center
+      Facebook Search by
+      = link_to "http://www.algolia.com" do
+        = image_tag "http://www.algolia.com/assets/algolia_white.png"
+      %br
+      %em
+        %small Rethink the way you search your Facebook feed.
+    = link_to "Try with your Facebook account", '/auth/facebook', class: 'login'
+    %p.text-center
+      %em Your data will be <u>securely</u> indexed, only searchable by You. No spam, ever.
+
+:javascript
+  !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
