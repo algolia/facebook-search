@@ -260,6 +260,12 @@
           if (hit.comments) {
             for (var j = 0; j < hit.comments.data.length; ++j) {
               hit.comments.data[j]._highlightResult = hit._highlightResult.comments.data[j];
+              if (!hit.comments.data[j].from) {
+                hit.comments.data[j].from = {
+                  name: 'Anonymous',
+                  id: 'user'
+                }
+              }
             }
           }
 
