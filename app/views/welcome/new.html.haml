@@ -21,6 +21,9 @@
         .row
           #facets.col-lg-2.col-sm-3.hidden-xs
           #hits.col-lg-6.col-sm-8.col-xs-12
+        .row
+          #next-page.col-lg-6.col-lg-offset-2.col-sm-8.col-sm-offset-3.col-xs-12.text-center{style: "display: none;"}
+            = image_tag "loading.gif", style: "width: 75px; height: 75px;"
     #no-results{style: 'display: none'}
       %p.text-center No results are matching your query.
     #loading{style: 'display: none'}
@@ -156,7 +159,9 @@
       var $noResults = $('#no-results');
       var $stats = $('#stats');
       var $loading = $('#loading');
+      var $nextPage = $('#next-page');
       var $q = $('#q');
+      window.page = null;
       var templates = {
         status: Hogan.compile($('#status-template').text()),
         photo: Hogan.compile($('#media-template').text()),
@@ -199,10 +204,14 @@
         $loading.hide();
 
         if (content.hits.length === 0) {
-          $hits.empty();
-          $stats.empty();
-          $hitsWrapper.hide();
-          $noResults.show();
+          if (content.page === 0) {
+            $hits.empty();
+            $stats.empty();
+            $hitsWrapper.hide();
+            $noResults.show();
+          } else {
+            $nextPage.hide();
+          }
           return;
         }
         $hitsWrapper.show();
@@ -249,28 +258,37 @@
             templates.comments.render(hit) +
             '</div>';
         }
-        $hits.html(html);
-
-        html = '';
-        for (var facet in content.facets) {
-          var values = [];
-          for (var f in content.facets[facet]) {
-            values.push([f, content.facets[facet][f]]);
-          }
-          values.sort(function(a, b) { b[1] - a[1] });
-          html += '<div class="title">' + LABELS[facet] + '</div>' +
-            '<ul class="list-unstyled">' +
-              $.map(values, function(e) { return '<li class="' + (helper.isRefined(facet, e[0]) ? 'active' : '') + '"><a href="#" onclick="helper.toggleRefine(\'' + facet + '\', \'' + e[0] + '\'); return false;">' + e[0] + '</a> (' + e[1] + ')'; }).join('') +
-            '</ul>';
+        if (content.page === 0) {
+          $hits.html(html);
+        } else {
+          $hits.append(html);
         }
-        $facets.html(html);
 
+        if (content.page == 0) {
+          html = '';
+          for (var facet in content.facets) {
+            var values = [];
+            for (var f in content.facets[facet]) {
+              values.push([f, content.facets[facet][f]]);
+            }
+            values.sort(function(a, b) { b[1] - a[1] });
+            html += '<div class="title">' + LABELS[facet] + '</div>' +
+              '<ul class="list-unstyled">' +
+                $.map(values, function(e) { return '<li class="' + (helper.isRefined(facet, e[0]) ? 'active' : '') + '"><a href="#" onclick="helper.toggleRefine(\'' + facet + '\', \'' + e[0] + '\'); return false;">' + e[0] + '</a> (' + e[1] + ')'; }).join('') +
+              '</ul>';
+          }
+          $facets.html(html);
+
+          $nextPage.hide();
+        }
+
+        window.page = null;
         $("abbr.timeago").timeago();
       }
 
       window.search = function() {
+        helper.page = 0;
         helper.search($q.val(), searchCallback, {
-          page: 0,
           maxValuesPerFacet: 10,
           hitsPerPage: 10,
           advancedSyntax: true,
@@ -279,6 +297,16 @@
           minWordSizefor2Typos: 7,
         });
       };
+
+      $(window).scroll(function () {
+        if ($(window).scrollTop() >= $(document).height() - $(window).height() - 100) {
+          if (window.page == null) {
+            $nextPage.show();
+            window.page = helper.page + 1;
+            helper.nextPage();
+          }
+        }
+      });
       
       $q.on('keyup change', function() {
         window.search();
