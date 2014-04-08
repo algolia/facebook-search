@@ -141,11 +141,11 @@
         </h4>
       </div> 
       <div class="content">
-        <p>{{ caption }}</p>
-        <div class="picture_container">
+        <div class="text-center">
           <a target="_blank" href="{{ link }}"> 
             <img src="{{ picture }}" />
           </a>
+          <p>{{ caption }}</p>
         </div>
       </div>
 
@@ -173,8 +173,8 @@
       var LABELS = {
         'application.name' : 'Application',
         'type' : 'Type',
-        'from.name' : 'From',
-        'story_tags.name' : 'Tags'
+        'from.name' : 'Author',
+        'story_tags.name' : 'Featuring'
       };
 
       window.helper = new AlgoliaSearchHelper(algolia, 'facebook_#{Rails.env}', {
