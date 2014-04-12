@@ -264,6 +264,35 @@ h1 small {
   }
 }
 
+#branding {
+  .well {
+    background: url("http://d3ibatyzauff7b.cloudfront.net/assets/flat/bg-blue.png");
+    color: white;
+    font-family: Ubuntu;
+    font-size: 1.4em;
+
+    p {
+      margin-top: 20px;
+    }
+
+    .btn-danger {
+      background: #ff5f5f;
+    }
+
+    .btn-danger:hover {
+      border-color: #ff5f5f;
+    }
+
+    .btn-success {
+      background: #13c4a5;
+    }
+
+    .btn-success:hover {
+      border-color: #13c4a5;
+    }
+  }
+}
+
 @media(max-width: $screen-xs-max) {
   #signin-link {
     top: 10px;
@@ -294,3 +323,4 @@ h1 small {
     }
   }
 }
+
